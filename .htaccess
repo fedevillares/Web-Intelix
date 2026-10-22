@@ -3,24 +3,41 @@
 # ============================================================
 
 # --- Security headers (real HTTP headers, not <meta> tags) ---
-# The <meta http-equiv> tags in each HTML <head> are kept as a fallback for
-# any environment that ignores this file, but browsers only honor
-# X-Frame-Options, X-Content-Type-Options, CSP's frame-ancestors and HSTS
-# when they arrive as actual response headers — this is what makes them work.
+# Los <meta http-equiv> de cada <head> quedan como respaldo para entornos que
+# ignoren este archivo, pero el navegador solo respeta X-Frame-Options,
+# frame-ancestors de CSP y HSTS cuando llegan como cabeceras HTTP reales:
+# por eso las páginas ya no los declaran en <meta> (generaban avisos en consola).
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "DENY"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.web3forms.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://api.web3forms.com; upgrade-insecure-requests;"
-  # Only takes effect once the site is served over HTTPS — harmless otherwise.
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://api.web3forms.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://api.web3forms.com; upgrade-insecure-requests;"
+  # Solo tiene efecto con HTTPS activo — inocuo si todavía no lo está.
   Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
 
+# --- Compresión (Brotli si el hosting lo tiene, gzip como respaldo) ---
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/ld+json image/svg+xml application/xml text/xml text/markdown
+</IfModule>
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/ld+json image/svg+xml application/xml text/xml text/markdown
+</IfModule>
+
+# --- Tipos MIME ---
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+  AddType text/markdown .md
+  AddCharset UTF-8 .html .css .js .json .md .xml .txt
+</IfModule>
+
 # --- Cache lifetimes for static assets ---
-# HTML/PHP/JSON stay uncached (content can change); fingerprint-free static
-# assets get a long max-age since they're versioned via ?v= query strings
-# (site.css?v=20260731) when they change.
+# HTML/PHP/JSON quedan sin caché (el contenido puede cambiar); los assets
+# estáticos llevan max-age largo porque se versionan con ?v= cuando cambian
+# (site.css?v=20261012).
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType text/css "access plus 1 year"
@@ -32,6 +49,7 @@
   ExpiresByType image/svg+xml "access plus 1 year"
   ExpiresByType image/x-icon "access plus 1 year"
   ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType application/pdf "access plus 1 month"
   ExpiresByType text/html "access plus 0 seconds"
   ExpiresByType application/json "access plus 0 seconds"
 </IfModule>
@@ -39,6 +57,14 @@
   <FilesMatch "\.(css|js|png|jpe?g|webp|svg|ico|woff2?)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
+</IfModule>
+
+# --- Archivos de desarrollo: no se publican ---
+# La carpeta _dev/ (docs, scripts, fuentes de imagen y video) puede subirse sin
+# riesgo: este bloque impide que se sirva por web.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^_dev(/|$) - [F,L]
 </IfModule>
 
 # --- Homepage: index.php negotiates Accept: text/markdown vs. text/html ---

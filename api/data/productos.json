@@ -7,9 +7,9 @@
       "precio": 999,
       "moneda": "USD",
       "imagenes": [
-        "assets/img/macbook-air-m1-1.jpg",
-        "assets/img/macbook-air-m1-2.jpg",
-        "assets/img/macbook-air-m1-3.jpg"
+        "assets/img/macbook-air-m1-1.webp",
+        "assets/img/macbook-air-m1-2.webp",
+        "assets/img/macbook-air-m1-3.webp"
       ],
       "stock": 5,
       "activo": true
@@ -21,8 +21,8 @@
       "precio": 199,
       "moneda": "USD",
       "imagenes": [
-        "assets/img/notebook-cx-1.jpg",
-        "assets/img/notebook-cx-2.jpg"
+        "assets/img/notebook-cx-1.webp",
+        "assets/img/notebook-cx-2.webp"
       ],
       "stock": 10,
       "activo": true
@@ -33,7 +33,7 @@
       "descripcion": "Realización de imágenes forenses de discos y celulares, por unidad. Incluye informe pericial individual. Precio + IVA 21% (se factura aparte).",
       "precio": 590000,
       "moneda": "ARS",
-      "imagenes": ["assets/img/informes-periciales.jpg"],
+      "imagenes": ["assets/img/informes-periciales.webp"],
       "stock": 99,
       "activo": true
     },
@@ -43,7 +43,7 @@
       "descripcion": "Hora de servicio de asesoría en informática forense y ciberseguridad. Precio + IVA 21% (se factura aparte).",
       "precio": 206000,
       "moneda": "ARS",
-      "imagenes": ["assets/img/asesoria-forense.jpg"],
+      "imagenes": ["assets/img/asesoria-forense.webp"],
       "stock": 99,
       "activo": true
     },
@@ -53,7 +53,7 @@
       "descripcion": "Sistema de inhibición y bloqueo de señales de interior. Ideal para empresas de seguridad y reuniones que requieran cero comunicaciones. Protege bandas 2G/3G/4G, Bluetooth, WiFi y teléfonos inalámbricos.",
       "precio": 2499,
       "moneda": "USD",
-      "imagenes": ["assets/img/inhibidores.jpg"],
+      "imagenes": ["assets/img/inhibidores.webp"],
       "stock": 8,
       "activo": true
     },
@@ -63,7 +63,7 @@
       "descripcion": "Detector profesional de señales de radio, rango 50MHz a 6GHz (LTE, WiFi, micrófonos). Detección de cámaras ocultas vía infrarrojo y lente. Batería recargable, auricular incluido, modo de escucha directa de cables.",
       "precio": 850,
       "moneda": "USD",
-      "imagenes": ["assets/img/detector-senales.jpg"],
+      "imagenes": ["assets/img/detector-senales.webp"],
       "stock": 12,
       "activo": true
     },
@@ -73,7 +73,7 @@
       "descripcion": "Robots educativos programables Dash y Dot, con accesorios (Wonder Pack).",
       "precio": 379,
       "moneda": "USD",
-      "imagenes": ["assets/img/robots-dash-dot.jpg"],
+      "imagenes": ["assets/img/robots-dash-dot.webp"],
       "stock": 1,
       "activo": true
     },
@@ -83,7 +83,7 @@
       "descripcion": "NAS QNAP 231K, 4TB (discos WD Black), dual Gigabit, 3x USB 3.0, 2 bahías, ARM.",
       "precio": 599,
       "moneda": "USD",
-      "imagenes": ["assets/img/nas-qnap.jpg"],
+      "imagenes": ["assets/img/nas-qnap.webp"],
       "stock": 4,
       "activo": true
     },
@@ -93,7 +93,7 @@
       "descripcion": "Notebook Dell Latitude 3420, i7, 64GB RAM, 512GB SSD, video NVIDIA MX450 2GB, WiFi 11ax.",
       "precio": 1399,
       "moneda": "USD",
-      "imagenes": ["assets/img/dell-latitude-3420.jpg"],
+      "imagenes": ["assets/img/dell-latitude-3420.webp"],
       "stock": 2,
       "activo": true
     },
@@ -103,7 +103,7 @@
       "descripcion": "Notebook gamer XPG Xenia 15KC, i7, 64GB RAM, RTX 3070 8GB, 1TB SSD, WiFi 11ax, pantalla 2K 165Hz.",
       "precio": 1799,
       "moneda": "USD",
-      "imagenes": ["assets/img/xpg-xenia-15kc.jpg"],
+      "imagenes": ["assets/img/xpg-xenia-15kc.webp"],
       "stock": 2,
       "activo": true
     }

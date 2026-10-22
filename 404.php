@@ -41,4 +41,7 @@ MD;
 }
 
 header('Content-Type: text/html; charset=utf-8');
-readfile(__DIR__ . '/404.html');
+// Se sirve en cualquier URL inexistente (p. ej. /a/b/c): <base> hace que las rutas relativas
+// de 404.html (CSS, JS, logo, links) resuelvan siempre desde la raíz del sitio.
+$html = file_get_contents(__DIR__ . '/404.html');
+echo preg_replace('/<head([^>]*)>/i', '<head$1><base href="/">', $html, 1);

@@ -8,9 +8,8 @@
 <link rel="shortcut icon" href="../assets/favicon.ico">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- OWASP Security Headers -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="X-Frame-Options" content="DENY">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
 <title>MFA Empresarial con YubiKey: por qué las llaves físicas superan al SMS | Intelix Blog</title>
@@ -23,21 +22,19 @@
 <meta name="author" content="Intelix Ingeniería">
 <meta name="article:published_time" content="2026-07-28">
 <link rel="canonical" href="https://intelix.com.ar/blogs/mfa-yubikey-empresarial.html">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" href="../assets/fonts/Inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/fonts.css?v=20261012">
 <style>
   :root{--bg:#121110;--bg-soft:#181715;--gold:#C9963A;--gold-soft:#E8B455;--white:#F0EDE8;--muted:#a8a39a;--line:rgba(240,237,232,0.08)}
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
   html.lenis,html.lenis body{height:auto}
   html.lenis.lenis-smooth{scroll-behavior:auto!important}
-  body{background:var(--bg);color:var(--white);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.8;-webkit-font-smoothing:antialiased}
+  body{background:var(--bg);color:var(--white);font-family:'Inter','Inter Fallback',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.8;-webkit-font-smoothing:antialiased}
   a{color:var(--gold);text-decoration:none}
   .wrap{max-width:760px;margin:0 auto;padding:0 28px}
   article{padding:120px 0 40px}
-  .post-cat{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);border:1px solid rgba(201,150,58,.28);padding:5px 12px;border-radius:100px;background:rgba(201,150,58,.05);margin-bottom:20px}
+  .post-cat{display:inline-block;font-family:'JetBrains Mono','JetBrains Mono Fallback',monospace;font-size:12px;color:var(--gold);border:1px solid rgba(201,150,58,.28);padding:5px 12px;border-radius:100px;background:rgba(201,150,58,.05);margin-bottom:20px}
   .article-title{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-.035em;line-height:1.15;margin-bottom:16px}
   .article-meta{display:flex;gap:18px;font-size:13px;color:var(--muted);margin-bottom:40px}
   .article-content h2{font-size:24px;font-weight:700;margin:44px 0 16px}
@@ -141,40 +138,42 @@
   "inLanguage": "es-AR"
 }
 </script>
+<link rel="stylesheet" href="../assets/css/site-nav.css?v=20261014">
+<script src="../assets/js/site-nav.js?v=20261012" defer></script>
 </head>
 <body>
-<nav id="nav">
-  <div class="wrap nav-inner">
-    <a href="../index.html" class="nav-logo-link" aria-label="Intelix — inicio"><img src="../assets/logo-intelix.jpg" alt="Intelix Ingeniería & Telecomunicaciones" class="nav-logo" width="120" height="46"></a>
-    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></button>
-    <div class="nav-links" id="navLinks">
-      <a href="../index.html">Inicio</a>
-      <a href="../index.html#servicios">Servicios</a>
-            <div class="nav-drop-group">
-        <div class="nav-drop">
-          <button type="button" class="nav-drop-trigger" aria-expanded="false">Nosotros <span class="nav-drop-caret">▾</span></button>
-          <div class="nav-drop-menu">
-            <a href="../trayectoria.html">Trayectoria</a>
-            <a href="../porque.html">Por qué Intelix</a>
-            <a href="../nosotros.html">Nosotros</a>
-          </div>
-        </div>
-        <div class="nav-drop">
-          <button type="button" class="nav-drop-trigger" aria-expanded="false">Recursos <span class="nav-drop-caret">▾</span></button>
-          <div class="nav-drop-menu">
-            <a href="../proyectos.html">Proyectos</a>
-            <a href="../prensa.html">Prensa</a>
-            <a href="index.html" class="active">Blog</a>
-            <a href="../Juegos/index.html">Juegos</a>
-          </div>
+<nav class="sn" id="siteNav" aria-label="Principal">
+  <div class="sn-inner">
+    <a href="../index.html" class="sn-logo" aria-label="Intelix, ir al inicio">
+      <img src="../assets/logo-intelix-130.webp" srcset="../assets/logo-intelix-130.webp 1x, ../assets/logo-intelix-260.webp 2x" alt="Intelix Ingeniería &amp; Telecomunicaciones" width="104" height="40">
+    </a>
+    <button class="sn-toggle" id="snToggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="snLinks">
+      <span></span><span></span>
+    </button>
+    <div class="sn-links" id="snLinks">
+      <a href="../index.html#servicios" class="sn-link">Servicios</a>
+      <a href="../proyectos.html" class="sn-link">Proyectos</a>
+      <a href="../nosotros.html" class="sn-link">Nosotros</a>
+      <a href="../diagnosticos.html" class="sn-link">Diagnóstico</a>
+      <div class="sn-more" id="snMore">
+        <button type="button" class="sn-link is-active" aria-expanded="false" aria-controls="snMoreMenu">
+          Más
+          <svg class="sn-caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5"/></svg>
+        </button>
+        <div class="sn-more-menu" id="snMoreMenu">
+          <a href="../trayectoria.html">Trayectoria <span>/trayectoria</span></a>
+          <a href="../porque.html">Por qué Intelix <span>/porque</span></a>
+          <a href="../prensa.html">Prensa <span>/prensa</span></a>
+          <a href="../blogs/index.html" class="is-active" aria-current="page">Blog <span>/blogs</span></a>
+          <a href="../Juegos/index.html">Juegos <span>/juegos</span></a>
+          <a href="../tienda/index.html">Tienda <span>/tienda</span></a>
         </div>
       </div>
-      <a href="../diagnosticos.html">Diagnóstico</a>
-      <a href="../tienda/index.html">Tienda</a>
-      <a href="https://wa.me/543412280272" target="_blank" rel="noopener" class="nav-cta"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.738-.945z"/></svg> WhatsApp</a>
+      <a href="../index.html#contacto" class="sn-cta">Contacto</a>
     </div>
   </div>
 </nav>
+<main id="contenido">
 <article>
   <div class="wrap">
     <span class="post-cat">Ciberseguridad</span>
@@ -211,7 +210,7 @@
 </article>
 <div class="wrap" style="max-width:760px;margin:0 auto 8px;padding:0 28px">
   <div style="border-top:1px solid var(--line);padding-top:32px;margin-top:8px">
-    <h2 style="font-size:15px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);font-weight:600;margin-bottom:16px">Artículos relacionados</h2>
+    <h2 style="font-size:15px;font-family:'JetBrains Mono','JetBrains Mono Fallback',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);font-weight:600;margin-bottom:16px">Artículos relacionados</h2>
     <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;margin:0 0 20px">
       <li><a href="passkeys-autenticacion-sin-contrasenas.html" style="color:var(--white);font-weight:600">Passkeys: el fin de las contraseñas en la empresa</a></li>
       <li><a href="zero-trust-seguridad-perimetral.html" style="color:var(--white);font-weight:600">Zero Trust: por qué el perímetro de red ya no alcanza</a></li>
@@ -221,6 +220,7 @@
   </div>
 </div>
 <div class="back-link"><a href="index.html">← Volver al blog</a></div>
+</main>
 <footer>
   <div class="wrap">
     <p>Intelix Ingeniería &amp; Telecomunicaciones | Rosario, Argentina</p>
@@ -277,7 +277,7 @@
   }
 })();
 </script>
-<script src="../assets/js/vendor/lenis.min.js"></script>
-<script src="../assets/js/home-v2.js"></script>
+<script src="../assets/js/vendor/lenis.min.js?v=20261012" defer></script>
+<script src="../assets/js/home-v2.js?v=20261012" defer></script>
 </body>
 </html>

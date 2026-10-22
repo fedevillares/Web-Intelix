@@ -4,16 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- OWASP Security Headers -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="X-Frame-Options" content="DENY">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
 <title>Pong · Atari 2600 | Intelix</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  :root{--gold:#C9963A;--gold-soft:#E8B455;--muted:#a8a39a;--dim:#7d786f;--line:rgba(240,237,232,.1)}
-  body{background:#121110;color:#F0EDE8;font-family:'JetBrains Mono','Consolas',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 16px 30px;-webkit-font-smoothing:antialiased}
+  :root{--gold:#C9963A;--gold-soft:#E8B455;--muted:#a8a39a;--dim:#8f8a81;--line:rgba(240,237,232,.1)}
+  body{background:#121110;color:#F0EDE8;font-family:'JetBrains Mono','JetBrains Mono Fallback','Consolas',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 16px 30px;-webkit-font-smoothing:antialiased}
   h1{font-size:20px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
   .sub{font-size:12px;color:var(--dim);letter-spacing:.1em;margin-bottom:16px;text-transform:uppercase}
   .stage{border:2px solid #2a2825;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px -24px rgba(0,0,0,.8);background:#000}
