@@ -1,0 +1,1 @@
+(function(){"use strict";function o(n){n&&n.querySelectorAll(".faq-q").forEach(function(i){i.addEventListener("click",function(){var t=i.closest(".faq-item"),e=!t.classList.contains("is-open");t.classList.toggle("is-open",e),i.setAttribute("aria-expanded",String(e))})})}window.Intelix=window.Intelix||{},window.Intelix.faq={init:o}})();
