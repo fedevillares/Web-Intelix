@@ -302,6 +302,7 @@
 
 <script src="assets/js/vendor/lenis.min.js?v=20261012" defer></script>
 <script src="assets/js/home-v2.js?v=20261012" defer></script>
+<script src="assets/js/intelix-forms.js?v=20261029"></script>
 <script>
   var QDATA = [
     {"b":"Uso de dispositivos y supervisión","q":"¿A qué edad tus hijos empezaron a usar redes sociales o apps de mensajería con acceso a internet?","o":["Recién ahora, respetando la edad mínima y con supervisión","Antes de los 13 años, pero con algún control","Antes de los 13 años, sin ningún control","No lo sé / no llevo un registro"]},
@@ -391,7 +392,6 @@
        desc:'El mayor peligro no es lo que falla, sino lo que no se sabe. Predominan las respuestas "no lo sé": informarte sobre estos temas es el primer paso para proteger a tus hijos.'}
   };
   var lastResult=null;
-  var WEB3FORMS_KEY = "ae96a81b-fc42-41e3-a4c7-5c16fc1a9ba3";
 
   function showResult(r){
     lastResult=r;
@@ -457,7 +457,6 @@
     var detail=buildDetail(nombre,hijos,email,tel,r,lv);
     var btn=this; btn.disabled=true; var oldTxt=btn.textContent; btn.textContent='Enviando…';
     var payload={
-      access_key: WEB3FORMS_KEY,
       subject: 'Autodiagnóstico crianza digital — '+nombre,
       from_name: 'Autodiagnóstico Intelix',
       replyto: email,
@@ -466,9 +465,7 @@
       'Resumen': 'A:'+r.counts.A+' B:'+r.counts.B+' C:'+r.counts.C+' D:'+r.counts.D,
       message: detail
     };
-    fetch('https://api.web3forms.com/submit',{
-      method:'POST', headers:{'Content-Type':'application/json',Accept:'application/json'}, body: JSON.stringify(payload)
-    }).then(function(res){return res.json();}).then(function(d){
+    IntelixForms.submit(payload).then(function(d){
       var sb=document.getElementById('sentBanner');
       if(d && d.success){
         sb.style.background='rgba(95,206,126,.08)'; sb.style.color='var(--white)';

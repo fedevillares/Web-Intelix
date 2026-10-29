@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- OWASP Security Headers -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
+<title>Arkanoid · Atari 2600 | Intelix</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--gold:#C9963A;--gold-soft:#E8B455;--muted:#a8a39a;--dim:#8f8a81;--line:rgba(240,237,232,.1)}
+  body{background:#121110;color:#F0EDE8;font-family:'JetBrains Mono','JetBrains Mono Fallback','Consolas',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 16px 30px;-webkit-font-smoothing:antialiased}
+  h1{font-size:20px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+  .sub{font-size:12px;color:var(--dim);letter-spacing:.1em;margin-bottom:16px;text-transform:uppercase}
+  .stage{border:2px solid #2a2825;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px -24px rgba(0,0,0,.8);background:#000}
+  canvas{display:block;background:#000;image-rendering:pixelated}
+  .hud{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px;max-width:600px}
+  .hud .chip{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:7px 14px;background:rgba(240,237,232,.02)}
+  .hud .chip b{color:var(--gold-soft);font-weight:600}
+  .keys{margin-top:14px;font-size:12px;color:var(--dim);text-align:center;line-height:1.9;max-width:560px}
+  .keys kbd{display:inline-block;background:rgba(240,237,232,.05);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:2px 8px;color:#F0EDE8;font-family:inherit;font-size:11px;margin:0 1px}
+  .intelix-back{position:fixed;top:14px;left:14px;z-index:2147483647;display:inline-flex;align-items:center;gap:7px;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;color:#1a1208;background:#C9963A;padding:9px 15px;border-radius:9px;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.45);transition:transform .18s,background .18s}
+  .intelix-back:hover{background:#E8B455;transform:translateY(-1px)}
+
+  .tv{background:#1c1812;padding:22px 26px 30px;border-radius:18px;position:relative;box-shadow:0 24px 60px -20px rgba(0,0,0,.8),inset 0 2px 0 rgba(255,255,255,.08);max-width:100%}
+  .tv::after{content:'';position:absolute;right:36px;bottom:12px;width:8px;height:8px;border-radius:50%;background:#c8a24a;box-shadow:-22px 0 0 #3c362c}
+  .screen{position:relative;background:#000;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.9)}
+  .screen canvas{width:min(768px,calc(100vw - 80px));height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+  .scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.22) 2px 3px)}
+  .glare{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 60% at 50% 0%,rgba(255,255,255,.07),transparent 60%)}
+  .tvlabel{font-size:12px;letter-spacing:4px;text-transform:uppercase;margin-top:12px;text-align:center;color:#6f6650}
+  .touch{display:none;gap:10px;margin-top:14px}
+  .touch button{font-family:inherit;font-size:14px;font-weight:600;color:#F0EDE8;background:rgba(240,237,232,.05);border:1px solid var(--line);border-radius:10px;padding:14px 22px;touch-action:none;user-select:none}
+  @media(pointer:coarse){.touch{display:flex}}
+</style>
+</head>
+<body>
+<a href="index.html" class="intelix-back">← Volver a Juegos</a>
+
+<h1>Arkanoid</h1>
+<div class="sub">Atari 2600 · Intelix</div>
+
+<div class="tv">
+  <div class="screen">
+    <canvas id="c" width="256" height="192" aria-label="Arkanoid"></canvas>
+    <div class="scan"></div>
+    <div class="glare"></div>
+  </div>
+  <div class="tvlabel">Atari 2600</div>
+</div>
+
+<div class="touch" aria-hidden="true">
+  <button id="tL">◄</button><button id="tS">S</button><button id="tF">Disparar</button><button id="tR">►</button>
+</div>
+<div class="keys">
+  <kbd>S</kbd> iniciar &nbsp;·&nbsp; <kbd>Espacio</kbd> disparar &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> mover<br>
+  Rompé todos los ladrillos sin dejar caer la pelota.
+</div>
+
+<script>
+'use strict';
+(function(){
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const W = cv.width, H = cv.height;
+
+  // ---------- mini fuente bitmap 3x5 (estilo 8 bits) ----------
+  const FONT = {
+    A:['010','101','111','101','101'],
+    B:['111','101','111','101','111'],
+    C:['111','100','100','100','111'],
+    D:['110','101','101','101','110'],
+    E:['111','100','111','100','111'],
+    F:['111','100','111','100','100'],
+    G:['111','100','101','101','111'],
+    H:['101','101','111','101','101'],
+    I:['111','010','010','010','111'],
+    J:['001','001','001','101','111'],
+    K:['101','110','100','110','101'],
+    L:['100','100','100','100','111'],
+    M:['101','111','111','101','101'],
+    N:['101','111','111','111','101'],
+    O:['111','101','101','101','111'],
+    P:['111','101','111','100','100'],
+    R:['111','101','111','101','101'],
+    S:['111','100','111','001','111'],
+    T:['111','010','010','010','010'],
+    U:['101','101','101','101','111'],
+    V:['101','101','101','101','010'],
+    W:['101','101','111','111','101'],
+    Y:['101','101','111','010','010'],
+    '0':['111','101','101','101','111'],
+    '1':['010','110','010','010','111'],
+    '2':['111','001','111','100','111'],
+    '3':['111','001','111','001','111'],
+    '4':['101','101','111','001','001'],
+    '5':['111','100','111','001','111'],
+    '6':['111','100','111','101','111'],
+    '7':['111','001','001','010','010'],
+    '8':['111','101','111','101','111'],
+    '9':['111','101','111','001','111'],
+    ' ':['000','000','000','000','000'],
+    '!': ['010','010','010','000','010'],
+    '-': ['000','000','111','000','000']
+  };
+  function drawText(str, x, y, s, color){
+    let cx = x;
+    for (let i=0;i<str.length;i++){
+      const g = FONT[str[i]] || FONT['-'];
+      for (let r=0;r<5;r++) for (let c=0;c<3;c++){
+        if (g[r][c]==='1'){ ctx.fillStyle=color; ctx.fillRect(cx+c*s, y+r*s, s, s); }
+      }
+      cx += 4*s;
+    }
+  }
+  function drawCenter(str, y, s, color){
+    const w = 4*s*str.length - s;
+    drawText(str, Math.floor((W-w)/2), y, s, color);
+  }
+
+  // ---------- audio chiptune ----------
+  let AC = null;
+  function initAudio(){
+    if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(AC && AC.state==='suspended') AC.resume();
+  }
+  function beep(f, d, type, v){
+    if(!AC) return;
+    try{
+      f=f||440; d=d||0.06; type=type||'square'; v=v==null?0.05:v;
+      const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain();
+      o.type=type; o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.0008,t+d);
+      o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+d);
+    }catch(e){}
+  }
+  function fanfare(){ [392,523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.13,'square',0.06), i*110)); }
+
+  // ---------- estado del juego ----------
+  let state = 'start'; // start | play | over | win
+  let score = 0, lives = 3, __debug = {state:()=>state, score:()=>score, ball:()=>ball, reset:()=>{reset();}, step:()=>update()};
+
+  const COLS=16, ROWS=7, BW=16, BH=8, BY=20;
+  const ROWCOL=['#f4f4ff','#ffcf3f','#ff7a3c','#ff4444','#3fcf6a','#4fc3e8','#b45cff'];
+  let bricks=[];
+  function layoutBricks(){
+    bricks=[];
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+      bricks.push({x:c*BW, y:BY+r*BH, v:true, c:ROWCOL[r]});
+  }
+
+  const pad = {x:(W-26)/2, y:H-18, w:26, h:5};
+  const ball = {x:0, y:0, vx:0, vy:0, r:2, sp:2.1, sticky:true};
+
+  function resetBall(){
+    ball.sticky=true; ball.sp=2.1; ball.vx=0; ball.vy=0;
+    ball.x=pad.x+pad.w/2; ball.y=pad.y-ball.r-1;
+  }
+  function reset(){ layoutBricks(); score=0; lives=3; pad.x=(W-pad.w)/2; resetBall(); state='play'; }
+  function launch(){
+    ball.sticky=false;
+    const a = Math.random()*0.7 - 0.35;
+    ball.vx = Math.sin(a)*ball.sp; ball.vy = -Math.cos(a)*ball.sp;
+    beep(660,0.07);
+  }
+
+  // ---------- input ----------
+  const keys = {};
+  addEventListener('keydown', e=>{
+    if(e.key===' '||e.key==='ArrowLeft'||e.key==='ArrowRight') e.preventDefault();
+    keys[e.key]=true;
+    if(e.repeat) return;
+    initAudio();
+    if((e.key==='s'||e.key==='S')&&!e.ctrlKey&&!e.metaKey){
+      if(state!=='play'){ beep(880,0.09); reset(); }
+      return;
+    }
+    if(e.code==='Space'||e.key===' '){
+      if(state==='play' && ball.sticky) launch();
+    }
+  });
+  addEventListener('keyup', e=>{ keys[e.key]=false; });
+  addEventListener('blur', ()=>{ for(const k in keys) keys[k]=false; });
+  window.addEventListener('error', e=>{ window.__err = window.__err ? ';; '+e.message : e.message; });
+  window.__g = __debug;
+
+  // ---------- fisica ----------
+  function update(){
+    if(state!=='play') return;
+    if(keys['ArrowLeft'])  pad.x -= 3;
+    if(keys['ArrowRight']) pad.x += 3;
+    pad.x = Math.max(2, Math.min(W-2-pad.w, pad.x));
+    if(ball.sticky){ ball.x=pad.x+pad.w/2; ball.y=pad.y-ball.r-1; return; }
+
+    ball.x += ball.vx; ball.y += ball.vy;
+
+    if(ball.x <= ball.r+1){ ball.x=ball.r+1; ball.vx=Math.abs(ball.vx); beep(200,0.03,'square',0.03); }
+    else if(ball.x >= W-ball.r-1){ ball.x=W-ball.r-1; ball.vx=-Math.abs(ball.vx); beep(200,0.03,'square',0.03); }
+    if(ball.y <= ball.r+2){ ball.y=ball.r+2; ball.vy=Math.abs(ball.vy); beep(200,0.03,'square',0.03); }
+
+    if(ball.vy>0 && ball.y+ball.r>=pad.y && ball.y+ball.r<=pad.y+pad.h+2 &&
+       ball.x>=pad.x-ball.r && ball.x<=pad.x+pad.w+ball.r){
+      const off = Math.max(-1, Math.min(1, (ball.x-(pad.x+pad.w/2))/(pad.w/2)));
+      const ang = off*1.05;
+      ball.sp = Math.min(3.2, ball.sp+0.05);
+      ball.vx = Math.sin(ang)*ball.sp; ball.vy = -Math.cos(ang)*ball.sp;
+      ball.y = pad.y-ball.r-0.5;
+      beep(440,0.05);
+    }
+
+    // ladrillos: MISMA fisica que el techo — detectar la cara que el centro
+    // del balon cruza durante el paso, rebotar en ella (solo se invierte la
+    // componente de ese eje) y reposicionar el balon fuera de la cara
+    const sx=ball.x-ball.vx, sy=ball.y-ball.vy; // pos al inicio del paso
+    let hitB=null, hitF=-1, hitT=Infinity;
+    const cand=(b,f,t)=>{ if(b && t<hitT){ hitB=b; hitF=f; hitT=t; } };
+    if(ball.vx>0){
+      let f=Infinity;
+      for(let i=0;i<bricks.length;i++){ const b=bricks[i]; if(!b.v) continue;
+        if(b.y<sy+ball.r && b.y+BH>sy-ball.r && sx<b.x && b.x<=ball.x && b.x<f) f=b.x; }
+      if(f<Infinity){ let b=null;
+        for(let i=0;i<bricks.length;i++) if(bricks[i].v && bricks[i].x===f){ b=bricks[i]; break; }
+        cand(b, 0, (f-sx)/ball.vx); }
+    } else if(ball.vx<0){
+      let f=-Infinity;
+      for(let i=0;i<bricks.length;i++){ const b=bricks[i]; if(!b.v) continue;
+        if(b.y<sy+ball.r && b.y+BH>sy-ball.r && ball.x<=b.x+BW && b.x+BW<sx && b.x+BW>f) f=b.x+BW; }
+      if(f>-Infinity){ let b=null;
+        for(let i=0;i<bricks.length;i++) if(bricks[i].v && bricks[i].x+BW===f){ b=bricks[i]; break; }
+        cand(b, 1, (f-sx)/ball.vx); }
+    }
+    if(ball.vy>0){
+      let f=Infinity;
+      for(let i=0;i<bricks.length;i++){ const b=bricks[i]; if(!b.v) continue;
+        if(b.x<ball.x+ball.r && b.x+BW>ball.x-ball.r && sy<b.y && b.y<=ball.y && b.y<f) f=b.y; }
+      if(f<Infinity){ let b=null;
+        for(let i=0;i<bricks.length;i++) if(bricks[i].v && bricks[i].y===f){ b=bricks[i]; break; }
+        cand(b, 2, (f-sy)/ball.vy); }
+    } else if(ball.vy<0){
+      let f=-Infinity;
+      for(let i=0;i<bricks.length;i++){ const b=bricks[i]; if(!b.v) continue;
+        if(b.x<ball.x+ball.r && b.x+BW>ball.x-ball.r && ball.y<=b.y+BH && b.y+BH<sy && b.y+BH>f) f=b.y+BH; }
+      if(f>-Infinity){ let b=null;
+        for(let i=0;i<bricks.length;i++) if(bricks[i].v && bricks[i].y+BH===f){ b=bricks[i]; break; }
+        cand(b, 3, (f-sy)/ball.vy); }
+    }
+    if(hitB){
+      hitB.v=false; score+=25;
+      if(hitF===0){ ball.x=hitB.x-ball.r-0.25; ball.vx=-Math.abs(ball.vx); }
+      else if(hitF===1){ ball.x=hitB.x+BW+ball.r+0.25; ball.vx=Math.abs(ball.vx); }
+      else if(hitF===2){ ball.y=hitB.y-ball.r-0.25; ball.vy=-Math.abs(ball.vy); }
+      else { ball.y=hitB.y+BH+ball.r+0.25; ball.vy=Math.abs(ball.vy); }
+      beep(680+Math.random()*320,0.04,'square',0.04);
+    } else {
+      // el balon ya estaba incrustado en bloques al empezar el paso:
+      // misma resolucion, por la cara con menos penetracion
+      let fb=null, fd=Infinity, ff=0;
+      for(let i=0;i<bricks.length;i++){
+        const b=bricks[i]; if(!b.v) continue;
+        if(ball.x+ball.r>b.x && ball.x-ball.r<b.x+BW &&
+           ball.y+ball.r>b.y && ball.y-ball.r<b.y+BH){
+          const pl=ball.x+ball.r-b.x, pr=(b.x+BW)-(ball.x-ball.r);
+          const pt=ball.y+ball.r-b.y, pb=(b.y+BH)-(ball.y-ball.r);
+          if(pl<fd){ fd=pl; fb=b; ff=0; }
+          if(pr<fd){ fd=pr; fb=b; ff=1; }
+          if(pt<fd){ fd=pt; fb=b; ff=2; }
+          if(pb<fd){ fd=pb; fb=b; ff=3; }
+        }
+      }
+      if(fb){
+        fb.v=false; score+=25;
+        if(ff===0){ ball.x=fb.x-ball.r-0.25; ball.vx=-Math.abs(ball.vx); }
+        else if(ff===1){ ball.x=fb.x+BW+ball.r+0.25; ball.vx=Math.abs(ball.vx); }
+        else if(ff===2){ ball.y=fb.y-ball.r-0.25; ball.vy=-Math.abs(ball.vy); }
+        else { ball.y=fb.y+BH+ball.r+0.25; ball.vy=Math.abs(ball.vy); }
+        beep(680+Math.random()*320,0.04,'square',0.04);
+      }
+    }
+
+    if(ball.y-ball.r > H+6){
+      lives--;
+      beep(160,0.3,'sawtooth',0.07);
+      if(lives<=0) state='over'; else resetBall();
+    }
+    if(bricks.every(b=>!b.v)){ state='win'; fanfare(); }
+  }
+
+  // ---------- render ----------
+  function blinkOn(){ return Math.floor(performance.now()/420)%2===0; }
+
+  function renderField(){
+    ctx.fillStyle='#5a5a70'; ctx.fillRect(0,0,W,1);
+    ctx.fillStyle='#2c2c3a'; ctx.fillRect(0,1,W,1);
+    for(let i=0;i<bricks.length;i++){
+      const br=bricks[i]; if(!br.v) continue;
+      ctx.fillStyle=br.c; ctx.fillRect(br.x, br.y, BW-1, BH-1);
+      ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fillRect(br.x, br.y+BH-2, BW-1, 1);
+    }
+    ctx.fillStyle='#d9d9f2'; ctx.fillRect(pad.x, pad.y, pad.w, pad.h);
+    ctx.fillStyle='#ffffff'; ctx.fillRect(pad.x, pad.y, pad.w, 1);
+    ctx.fillStyle='#6f6f9e'; ctx.fillRect(pad.x, pad.y+pad.h-1, pad.w, 1);
+    ctx.fillStyle='#ffffff'; ctx.fillRect(ball.x-2, ball.y-2, 4, 4);
+  }
+
+  function renderHUD(){
+    const lab='#7d739f', val='#f2eeff';
+    drawText('PTS ',4,6,1,lab);
+    drawText(('0000'+score).slice(-4), 4+12, 6, 1, val);
+    drawText('VIDA',218,6,1,lab);
+    drawText(''+Math.max(0,lives), 240, 6, 1, val);
+  }
+
+  function renderStart(){
+    for(let r=0;r<ROWS;r++){
+      ctx.fillStyle=ROWCOL[r];
+      for(let c=0;c<8;c++) ctx.fillRect(81+c*12, 14+r*5, 11, 4);
+    }
+    drawCenter('ARKANOID', 62, 2, '#ffcf3f');
+    drawCenter('BREAKOUT 8 BITS', 84, 1, '#7d739f');
+    if(blinkOn()) drawCenter('PULSA S PARA JUGAR', 106, 1, '#3fcf6a');
+    ctx.fillStyle='#d9d9f2'; ctx.fillRect(108,130,40,5);
+    ctx.fillStyle='#ffffff'; ctx.fillRect(126,122,4,4);
+    drawCenter('ARCADE 2600', 168, 1, '#584f7a');
+  }
+
+  function renderEnd(win){
+    if(win){
+      drawCenter('GANASTE!', 62, 2, '#41e07d');
+      if(blinkOn()) drawCenter('PULSA-S', 92, 1, '#f2eeff');
+    } else {
+      drawCenter('SE ACABO', 62, 2, '#ff5454');
+      if(blinkOn()) drawCenter('PULSA-S', 92, 1, '#f2eeff');
+    }
+    const s = 'PTS'+('0000'+score).slice(-4);
+    drawCenter(s, 112, 1, '#7d739f');
+  }
+
+  function render(){
+    ctx.fillStyle='#050508'; ctx.fillRect(0,0,W,H);
+    if(state==='start'){ renderStart(); return; }
+    renderField();
+    renderHUD();
+    if(state==='over') renderEnd(false);
+    if(state==='win')  renderEnd(true);
+  }
+
+  (function loop(){ update(); render(); requestAnimationFrame(loop); })();
+})();
+
+// controles táctiles
+(function(){
+  function key(k,down){ dispatchEvent(new KeyboardEvent(down?'keydown':'keyup',{key:k,code:k===' '?'Space':k,bubbles:true,cancelable:true})); }
+  [['tL','ArrowLeft'],['tR','ArrowRight'],['tF',' ']].forEach(function(p){
+    var b=document.getElementById(p[0]);
+    b.addEventListener('pointerdown',function(e){e.preventDefault();key(p[1],true);});
+    ['pointerup','pointercancel','pointerleave'].forEach(function(ev){b.addEventListener(ev,function(){key(p[1],false);});});
+  });
+  var s=document.getElementById('tS');
+  s.addEventListener('pointerdown',function(e){e.preventDefault();key('s',true);key('s',false);});
+})();
+</script>
+</body>
+</html>
