@@ -307,6 +307,7 @@
 
 <script src="assets/js/vendor/lenis.min.js?v=20261012" defer></script>
 <script src="assets/js/home-v2.js?v=20261012" defer></script>
+<script src="assets/js/intelix-forms.js?v=20261029"></script>
 <script>
   var QDATA = [
     {"b":"Datos y sistemas","q":"¿La información de tu empresa (clientes, ventas, operaciones) está centralizada en algún sistema, o dispersa en planillas y carpetas sueltas?","m":false,"o":["Centralizada en un sistema (ERP, CRM, base de datos)","Parcialmente, algunas áreas sí y otras en planillas","Dispersa en planillas y documentos sueltos","No lo sé"]},
@@ -401,7 +402,6 @@
        desc:'El mayor freno no es la tecnología, sino la falta de claridad sobre qué es posible hoy. Un diagnóstico técnico te daría un punto de partida concreto.'}
   };
   var lastResult=null;
-  var WEB3FORMS_KEY = "ae96a81b-fc42-41e3-a4c7-5c16fc1a9ba3";
 
   function showResult(r){
     lastResult=r;
@@ -467,7 +467,6 @@
     var detail=buildDetail(nombre,empresa,email,tel,r,lv);
     var btn=this; btn.disabled=true; var oldTxt=btn.textContent; btn.textContent='Enviando…';
     var payload={
-      access_key: WEB3FORMS_KEY,
       subject: 'Autodiagnóstico madurez en IA'+(empresa?(' — '+empresa):(' — '+nombre)),
       from_name: 'Autodiagnóstico IA Intelix',
       replyto: email,
@@ -476,9 +475,7 @@
       'Resumen': 'A:'+r.counts.A+' B:'+r.counts.B+' C:'+r.counts.C+' D:'+r.counts.D,
       message: detail
     };
-    fetch('https://api.web3forms.com/submit',{
-      method:'POST', headers:{'Content-Type':'application/json',Accept:'application/json'}, body: JSON.stringify(payload)
-    }).then(function(res){return res.json();}).then(function(d){
+    IntelixForms.submit(payload).then(function(d){
       var sb=document.getElementById('sentBanner');
       if(d && d.success){
         sb.style.background='rgba(95,206,126,.08)'; sb.style.color='var(--white)';
